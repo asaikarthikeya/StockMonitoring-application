@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% block title%} Watchlist {% endblock %}
+{% block content%}
+<style>
+    .watchlist-section {
+        margin-top: 50px;
+        display: flex;
+        align-items: flex-start;
+    }
+
+    .left-section {
+        width: 30%;
+        margin-right: 20px;
+    }
+
+    .right-section {
+        width: 70%;
+    }
+
+    .watchlist-item {
+        display: flex;
+        align-items: center;
+        padding: 5px;
+        margin-bottom: 5px;
+        background-color: #f5f5f5;
+        cursor: pointer;
+    }
+
+    .watchlist-item .icon {
+        margin-right: 250px;
+    }
+
+
+    .table-container {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .table-container table {
+        width: 100%;
+    }
+
+    .buttons-container {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .buttons-container button {
+        flex: 1;
+        margin-right: 10px;
+    }
+
+    .create-button {
+        width: 50%;
+        margin: 0 auto;
+    }
+
+    .watchlist-item .bin-icon {
+        cursor: pointer;
+        margin-right: 0;
+        margin-left: 250px;
+    }
+
+    .add-symbol-button {
+        margin-left: auto;
+    }
+</style>
+
+<!-- Display watchlist section -->
+<div class="watchlist-section">
+    <div class="left-section">
+        {% if watchlist_data %}
+            <p class="mb-4 mt-4">Watchlist:</p>
+            <div class="buttons-container">
+                <button class="create-button">Create</button>
+            </div>
+            <div class="table-container">
+                <table class="table">
+                    <tbody>
+                        {% for item in watchlist_data %}
+                            <tr>
+                                <td>
+                                    <div class="watchlist-item">
+                                        <span>{{ item.name }}</span>
+                                        <i class="icon fas fa-trash-alt bin-icon"></i>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="right-section">
+        {% if watchlist_data %}
+            <p class="mb-4 mt-4">Watchlist Data:</p>
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Company Name</th>
+                            <th>Price</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in watchlist_data %}
+                            <tr>
+                                <td>{{ item.name }}</td>
+                                <td>{{ item.price }}</td>
+                                <td><i class="icon fas fa-trash-alt bin-icon"></i></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <button class="create-button add-symbol-button">Add Symbol</button>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    const createButton = document.querySelector('.create-button');
+    const addSymbolButton = document.querySelector('.add-symbol-button');
+
+    const leftBinIcons = document.querySelectorAll('.left-bin-icon');
+    const rightBinIcons = document.querySelectorAll('.right-bin-icon');
+
+    leftBinIcons.forEach(binIcon => {
+        binIcon.addEventListener('click', () => {
+            const itemId = binIcon.id.replace('left-bin-', '');
+            // Make a POST request to the delete_item route with the itemId as a parameter
+            fetch('/delete_item', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `item_id=${itemId}`,
+            })
+            .then(response => {
+                // Handle the response
+                if (response.ok) {
+                    // Item deleted successfully, you can perform any necessary actions
+                } else {
+                    // An error occurred, handle the error
+                }
+            })
+            .catch(error => {
+                // Handle the error
+            });
+        });
+    });
+
+    rightBinIcons.forEach(binIcon => {
+        binIcon.addEventListener('click', () => {
+            const itemId = binIcon.id.replace('right-bin-', '');
+            // Make a POST request to the delete_item route with the itemId as a parameter
+            fetch('/delete_item', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `item_id=${itemId}`,
+            })
+            .then(response => {
+                // Handle the response
+                if (response.ok) {
+                    // Item deleted successfully, you can perform any necessary actions
+                } else {
+                    // An error occurred, handle the error
+                }
+            })
+            .catch(error => {
+                // Handle the error
+            });
+        });
+    });
+
+    createButton.addEventListener('click', () => {
+        // Handle the create button click event
+        // Make a POST request to the create_item route
+        fetch('/create_item', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'item_name=example', // Replace 'example' with the actual value
+        })
+        .then(response => {
+            // Handle the response
+            if (response.ok) {
+                // Item created successfully, you can perform any necessary actions
+            } else {
+                // An error occurred, handle the error
+            }
+        })
+        .catch(error => {
+            // Handle the error
+        });
+    });
+
+    addSymbolButton.addEventListener('click', () => {
+        // Handle the Add Symbol button click event
+        // You can perform any necessary actions here
+    });
+</script>
+{% endblock %}

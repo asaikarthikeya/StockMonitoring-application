@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+{% block title%} {{ title }} {% endblock %}
+{% block content%}
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<div class="container py-4 text-center">
+    {% if current_user.is_authenticated %}
+
+    <button class="watchlist-button" style="margin-right: 20px;"><a href="{{url_for('watchlist')}}">Watchlist</a></button>
+
+    <!-- <h1>Welcome {{ current_user.username }}</h1> -->
+    <form action="{{ url_for('index') }}" method="POST" class="d-inline-block">
+        <label for="symbol" class="sr-only">Select a symbol:</label>
+        <select name="symbol" id="symbol" style="height: 30px; width: 300px;">
+            <option value="" disabled selected hidden></option>
+            <option value="MSFT">MSFT</option>
+            <option value="AAPL">AAPL</option>
+            <!-- Add more options for additional symbols -->
+        </select>
+        <input type="submit" value="Submit" style="height: 30px; width: 100px; margin-right: 180px;">
+    </form>
+    
+    <a href="{{url_for('logout')}}" class="logout-link ml-auto">Logout</a>
+
+    {% if plot_url %}
+        {% if symbol == 'MSFT' %}
+            <p style="margin-top: 20px;">Company : Microsoft - {{ symbol }}</p>
+        {% elif symbol == 'AAPL' %}
+            <p style="margin-top: 20px;">Company : Apple - {{ symbol }}</p>
+        {% else %}
+            <p style="margin-top: 20px;">Company : {{ symbol }}</p>
+        {% endif %}
+        <img src="data:image/png;base64,{{ plot_url }}" alt="Stock Prices">
+    {% else %}
+        <style>
+            .watchlist-section {
+                margin-top: 50px;
+                display: flex;
+                align-items: flex-start;
+            }
+        
+            .left-section {
+                width: 30%;
+                margin-right: 20px;
+            }
+        
+            .right-section {
+                width: 70%;
+            }
+        
+            .watchlist-item {
+                display: flex;
+                align-items: center;
+                padding: 5px;
+                margin-bottom: 5px;
+                background-color: #f5f5f5;
+                cursor: pointer;
+            }
+            
+            .watchlist-item .icon {
+                margin-right: 5px;
+            }
+
+            .watchlist-item .icon {
+                cursor: pointer;
+                margin-left: 250px;
+            }
+            
+            .table-container {
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .table-container table {
+                width: 100%;
+            }
+            
+            .buttons-container {
+                display: flex;
+                align-items: center;
+                margin-bottom: 10px;
+            }
+            
+            .buttons-container button {
+                flex: 1;
+                margin-right: 10px;
+            }
+            
+            .create-button {
+                width: 50%;
+                margin: 0 auto;
+            }
+            
+            .right-section .watchlist-item {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding-right: 10px;
+            }
+
+            .right-section .watchlist-item .bin-icon {
+                cursor: pointer;
+                margin-left: 5px;
+            }
+            .inline-text {
+                display: inline;
+                margin-right: 80px;
+            }
+
+            .inline-button {
+                display: inline;
+                margin-left: 90px;
+            }
+        </style>
+        
+        <!-- Display watchlist section -->
+        <div class="watchlist-section">
+            <div class="left-section">
+                {% if watchlist_data %}
+                    <p class="mb-4 mt-4">Watchlist:</p>
+                    <div class="buttons-container">
+                        <button class="create-button">Create</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="table">
+                            <tbody>
+                                {% for item in watchlist_data %}
+                                    <tr>
+                                        <td>
+                                            <div class="watchlist-item">
+                                                <span>{{ item.name }}</span>
+                                                <i class="icon fas fa-trash-alt"></i>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Right Section - Watchlist Data -->
+            <!--  -->
+            <div class="right-section">
+                {% if watchlist_data %}
+                    <p class="mb-4 mt-4 inline-text">Watchlist Data:</p>
+                    <button class="add-symbol-button inline-button">Add Symbol</button>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Company Name</th>
+                                    <th>Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in watchlist_data %}
+                                    <tr>
+                                        <td>
+                                            <div class="watchlist-item">
+                                                <span>{{ item.name }}</span>
+                                                <i class="icon fas fa-trash-alt bin-icon"></i>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                {% endif %}
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const createButton = document.querySelector('.create-button');
+                const tableBody = document.querySelector('.table-container table tbody');
+            
+                // Function to handle the removal of watchlist item
+                const removeWatchlistItem = (tr) => {
+                    const watchlistId = tr.querySelector('.watchlist-item').getAttribute('data-watchlist-id');
+                    
+                    // Send a DELETE request to remove the watchlist item
+                    fetch(`/watchlist/${watchlistId}`, { method: 'DELETE' })
+                        .then(response => {
+                            if (response.ok) {
+                                // Remove the watchlist item from the DOM
+                                tr.remove();
+                            } else {
+                                console.error('Failed to remove the watchlist item.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('An error occurred while removing the watchlist item:', error);
+                        });
+                };
+            
+                // Add event listeners to the bin icons for deleting watchlist items
+                const binIcons = document.querySelectorAll('.bin-icon');
+                binIcons.forEach(binIcon => {
+                    binIcon.addEventListener('click', (event) => {
+                        const tr = event.target.closest('tr');
+                        removeWatchlistItem(tr);
+                    });
+                });
+            
+                createButton.addEventListener('click', () => {
+                    // Send a POST request to create a new watchlist item
+                    fetch('/watchlist', { method: 'POST' })
+                        .then(response => response.json())
+                        .then(data => {
+                            // Create a new watchlist item dynamically
+                            const tr = document.createElement('tr');
+                            const td = document.createElement('td');
+                            const watchlistItem = document.createElement('div');
+                            const binIcon = document.createElement('i');
+            
+                            watchlistItem.classList.add('watchlist-item');
+                            binIcon.classList.add('icon', 'fas', 'fa-trash-alt', 'bin-icon');
+            
+                            watchlistItem.textContent = data.watchlist_name;
+                            watchlistItem.setAttribute('data-watchlist-id', data.watchlist_id);
+            
+                            td.appendChild(watchlistItem);
+                            td.appendChild(binIcon);
+                            tr.appendChild(td);
+                            tableBody.appendChild(tr);
+            
+                            // Add event listener to the bin icon for deleting the watchlist item
+                            binIcon.addEventListener('click', () => {
+                                removeWatchlistItem(tr);
+                            });
+            
+                            // Optionally, you can perform additional actions for the created watchlist item,
+                            // such as loading its corresponding watchlist data dynamically
+                        });
+                });
+            });
+            </script>
+    {% endif %}
+
+
+    {% else %}
+
+    <a href="{{url_for('login')}}">Sign in/Sign Up</a>
+
+    {% endif %}
+</div>
+{% endblock %}
